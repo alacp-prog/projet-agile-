@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -10,9 +10,12 @@ import {
   TouchableOpacity, 
   FlatList,
   StatusBar,
-  Platform
+  Platform,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebaseConfig';
 
 const JOB_DATA = [
   {
@@ -58,12 +61,39 @@ const JOB_DATA = [
 
 export default function JobSearchScreen() {
   const [activeTab, setActiveTab] = useState('Search');
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "jobs"));
+        if (!querySnapshot.empty) {
+          const jobsData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setJobs(jobsData);
+        } else {
+          // Fallback to static data if Firestore is empty
+          setJobs(JOB_DATA);
+        }
+      } catch (error) {
+        console.error("Error fetching jobs from Firebase: ", error);
+        setJobs(JOB_DATA); // Fallback on error (e.g., missing permissions)
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
   
   const renderJobCard = ({ item }) => (
     <View style={styles.cardContainer}>
       <View style={styles.cardHeader}>
-        <View style={[styles.companyLogo, { backgroundColor: item.logoColor }]}>
-           <MaterialCommunityIcons name={item.icon} size={20} color={item.logoColor === '#1e293b' ? '#fff' : '#0ea5e9'} />
+        <View style={[styles.companyLogo, { backgroundColor: item.logoColor || '#f1f5f9' }]}>
+           <MaterialCommunityIcons name={item.icon || 'briefcase-outline'} size={20} color={item.logoColor === '#1e293b' ? '#fff' : '#0ea5e9'} />
         </View>
         <TouchableOpacity>
           <Ionicons name="bookmark" size={20} color="#64748b" />
@@ -74,9 +104,9 @@ export default function JobSearchScreen() {
       <Text style={styles.companyInfo}>{item.company} • {item.location}</Text>
       
       <View style={styles.tagsContainer}>
-        {item.tags.map((tag, index) => (
-          <View key={index} style={[styles.tag, { backgroundColor: tag.color }]}>
-            <Text style={[styles.tagText, { color: tag.textColor }]}>{tag.label}</Text>
+        {item.tags && item.tags.map((tag, index) => (
+          <View key={index} style={[styles.tag, { backgroundColor: tag.color || '#e2e8f0' }]}>
+            <Text style={[styles.tagText, { color: tag.textColor || '#334155' }]}>{tag.label}</Text>
           </View>
         ))}
       </View>
@@ -117,8 +147,14 @@ export default function JobSearchScreen() {
         </View>
 
         {/* Hero Section */}
-        <FlatList
-          data={JOB_DATA}
+        {loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#4338ca" />
+            <Text style={{ marginTop: 10, color: '#64748b' }}>Chargement des offres...</Text>
+          </View>
+        ) : (
+          <FlatList
+            data={jobs}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
@@ -167,6 +203,7 @@ export default function JobSearchScreen() {
           renderItem={renderJobCard}
           contentContainerStyle={styles.listContent}
         />
+        )}
 
         {/* Bottom Navigation */}
         <View style={styles.bottomNav}>
