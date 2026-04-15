@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  StyleSheet, 
   Text, 
   View, 
   SafeAreaView, 
@@ -63,6 +62,13 @@ export default function JobSearchScreen() {
   const [activeTab, setActiveTab] = useState('Search');
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredJobs = jobs.filter(job => 
+    job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.company?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    job.location?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     const fetchJobs = async () => {
@@ -90,9 +96,9 @@ export default function JobSearchScreen() {
   }, []);
   
   const renderJobCard = ({ item }) => (
-    <View style={styles.cardContainer}>
-      <View style={styles.cardHeader}>
-        <View style={[styles.companyLogo, { backgroundColor: item.logoColor || '#f1f5f9' }]}>
+    <View className="bg-white rounded-[24px] p-6 mb-5 shadow-sm shadow-slate-200 elevation-3">
+      <View className="flex-row justify-between items-start mb-4">
+        <View className="w-12 h-12 rounded-xl justify-center items-center" style={{ backgroundColor: item.logoColor || '#f1f5f9' }}>
            <MaterialCommunityIcons name={item.icon || 'briefcase-outline'} size={20} color={item.logoColor === '#1e293b' ? '#fff' : '#0ea5e9'} />
         </View>
         <TouchableOpacity>
@@ -100,47 +106,47 @@ export default function JobSearchScreen() {
         </TouchableOpacity>
       </View>
       
-      <Text style={styles.jobTitle}>{item.title}</Text>
-      <Text style={styles.companyInfo}>{item.company} • {item.location}</Text>
+      <Text className="text-lg font-bold text-slate-900 mb-1.5">{item.title}</Text>
+      <Text className="text-sm text-slate-600 mb-4">{item.company} • {item.location}</Text>
       
-      <View style={styles.tagsContainer}>
+      <View className="flex-row flex-wrap gap-2 mb-6">
         {item.tags && item.tags.map((tag, index) => (
-          <View key={index} style={[styles.tag, { backgroundColor: tag.color || '#e2e8f0' }]}>
-            <Text style={[styles.tagText, { color: tag.textColor || '#334155' }]}>{tag.label}</Text>
+          <View key={index} className="px-3 py-1.5 rounded-lg" style={{ backgroundColor: tag.color || '#e2e8f0' }}>
+            <Text className="text-[11px] font-bold tracking-wider" style={{ color: tag.textColor || '#334155' }}>{tag.label}</Text>
           </View>
         ))}
       </View>
       
-      <View style={styles.cardFooter}>
-        <Text style={styles.salary}>{item.salary}</Text>
-        <TouchableOpacity style={styles.applyButton}>
-          <Text style={styles.applyButtonText}>Voir détails</Text>
+      <View className="flex-row justify-between items-center border-t border-slate-100 pt-4">
+        <Text className="text-base font-bold text-blue-600">{item.salary}</Text>
+        <TouchableOpacity className="bg-indigo-600 px-5 py-2.5 rounded-full">
+          <Text className="text-white font-semibold text-sm">Voir détails</Text>
         </TouchableOpacity>
       </View>
     </View>
   );
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView className="flex-1 bg-[#f8faff]" style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#f8faff" />
-      <View style={styles.container}>
+      <View className="flex-1">
         
         {/* Header */}
-        <View style={styles.header}>
+        <View className="flex-row items-center justify-between px-5 py-3">
           <TouchableOpacity>
             <Ionicons name="menu" size={24} color="#334155" />
           </TouchableOpacity>
           
-          <Text style={styles.logoText}>JobLink</Text>
+          <Text className="text-xl font-extrabold text-indigo-700 tracking-tight">JobLink</Text>
           
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.notificationBtn}>
+          <View className="flex-row items-center">
+            <TouchableOpacity className="mr-4">
               <Ionicons name="notifications" size={20} color="#64748b" />
             </TouchableOpacity>
-            <View style={styles.avatarContainer}>
+            <View className="w-8 h-8 rounded-full overflow-hidden">
               <Image 
                 source={{ uri: 'https://i.pravatar.cc/100?img=47' }} 
-                style={styles.avatar} 
+                className="w-full h-full"
               />
             </View>
           </View>
@@ -148,83 +154,85 @@ export default function JobSearchScreen() {
 
         {/* Hero Section */}
         {loading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="large" color="#4338ca" />
-            <Text style={{ marginTop: 10, color: '#64748b' }}>Chargement des offres...</Text>
+            <Text className="mt-2.5 text-slate-500">Chargement des offres...</Text>
           </View>
         ) : (
           <FlatList
-            data={jobs}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <View>
-              <View style={styles.heroSection}>
-                <Text style={styles.heroTitle}>
-                  Find your next <Text style={styles.heroTitleItalic}>impact</Text>.
-                </Text>
-                <Text style={styles.heroSubtitle}>
-                  Curated opportunities for high-performing talent.
-                </Text>
-              </View>
+            data={filteredJobs}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            ListHeaderComponent={
+              <View>
+                <View className="px-5 mt-4 mb-6">
+                  <Text className="text-3xl font-extrabold text-slate-900 mb-2 leading-10 tracking-tight">
+                    Find your next <Text className="italic text-blue-600">impact</Text>.
+                  </Text>
+                  <Text className="text-base text-slate-600 leading-6">
+                    Curated opportunities for high-performing talent.
+                  </Text>
+                </View>
 
-              {/* Search Bar */}
-              <View style={styles.searchContainer}>
-                <Ionicons name="search" size={20} color="#94a3b8" style={styles.searchIcon} />
-                <TextInput 
-                  style={styles.searchInput}
-                  placeholder="Search jobs, companies..."
-                  placeholderTextColor="#94a3b8"
-                />
-              </View>
+                {/* Search Bar */}
+                <View className="flex-row items-center bg-slate-100 mx-5 rounded-full px-4 py-3 mb-5">
+                  <Ionicons name="search" size={20} color="#94a3b8" className="mr-2" />
+                  <TextInput 
+                    className="flex-1 text-base text-slate-700"
+                    placeholder="Search jobs, companies..."
+                    placeholderTextColor="#94a3b8"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                  />
+                </View>
 
-              {/* Filters */}
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
-                style={styles.filtersContainer}
-                contentContainerStyle={styles.filtersContent}
-              >
-                <TouchableOpacity style={[styles.filterChip, styles.filterChipActive]}>
-                  <Ionicons name="location-sharp" size={14} color="#fff" />
-                  <Text style={[styles.filterChipText, styles.filterChipTextActive]}>Paris, FR</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={styles.filterChip}>
-                  <Text style={styles.filterChipText}>Product Design</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={styles.filterChip}>
-                  <Text style={styles.filterChipText}>Contract</Text>
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          }
-          renderItem={renderJobCard}
-          contentContainerStyle={styles.listContent}
-        />
+                {/* Filters */}
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false} 
+                  className="mb-6"
+                  contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+                >
+                  <TouchableOpacity className="bg-blue-700 px-4 py-2.5 rounded-full flex-row items-center gap-1.5">
+                    <Ionicons name="location-sharp" size={14} color="#fff" />
+                    <Text className="font-semibold text-white text-sm">Paris, FR</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity className="bg-slate-200 px-4 py-2.5 rounded-full flex-row items-center gap-1.5">
+                    <Text className="font-semibold text-slate-700 text-sm">Product Design</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity className="bg-slate-200 px-4 py-2.5 rounded-full flex-row items-center gap-1.5">
+                    <Text className="font-semibold text-slate-700 text-sm">Contract</Text>
+                  </TouchableOpacity>
+                </ScrollView>
+              </View>
+            }
+            renderItem={renderJobCard}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 100 }}
+          />
         )}
 
         {/* Bottom Navigation */}
-        <View style={styles.bottomNav}>
-          <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Search')}>
+        <View className="flex-row justify-around items-center bg-white py-3 px-2 border-t border-slate-100 absolute bottom-0 left-0 right-0" style={{ paddingBottom: Platform.OS === 'ios' ? 28 : 12 }}>
+          <TouchableOpacity className="items-center justify-center w-16" onPress={() => setActiveTab('Search')}>
             <Ionicons name={activeTab === 'Search' ? "search" : "search-outline"} size={24} color={activeTab === 'Search' ? "#3b82f6" : "#94a3b8"} />
-            <Text style={[styles.navText, activeTab === 'Search' && styles.navTextActive]}>SEARCH</Text>
+            <Text className={`text-[10px] font-bold mt-1 tracking-wider ${activeTab === 'Search' ? 'text-blue-500' : 'text-slate-400'}`}>SEARCH</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Apps')}>
+          <TouchableOpacity className="items-center justify-center w-16" onPress={() => setActiveTab('Apps')}>
             <Ionicons name={activeTab === 'Apps' ? "briefcase" : "briefcase-outline"} size={24} color={activeTab === 'Apps' ? "#3b82f6" : "#94a3b8"} />
-            <Text style={[styles.navText, activeTab === 'Apps' && styles.navTextActive]}>APPS</Text>
+            <Text className={`text-[10px] font-bold mt-1 tracking-wider ${activeTab === 'Apps' ? 'text-blue-500' : 'text-slate-400'}`}>APPS</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Messages')}>
+          <TouchableOpacity className="items-center justify-center w-16" onPress={() => setActiveTab('Messages')}>
             <Ionicons name={activeTab === 'Messages' ? "chatbubble" : "chatbubble-outline"} size={24} color={activeTab === 'Messages' ? "#3b82f6" : "#94a3b8"} />
-            <Text style={[styles.navText, activeTab === 'Messages' && styles.navTextActive]}>MESSAGES</Text>
+            <Text className={`text-[10px] font-bold mt-1 tracking-wider ${activeTab === 'Messages' ? 'text-blue-500' : 'text-slate-400'}`}>MESSAGES</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.navItem} onPress={() => setActiveTab('Profile')}>
+          <TouchableOpacity className="items-center justify-center w-16" onPress={() => setActiveTab('Profile')}>
             <Ionicons name={activeTab === 'Profile' ? "person" : "person-outline"} size={24} color={activeTab === 'Profile' ? "#3b82f6" : "#94a3b8"} />
-            <Text style={[styles.navText, activeTab === 'Profile' && styles.navTextActive]}>PROFILE</Text>
+            <Text className={`text-[10px] font-bold mt-1 tracking-wider ${activeTab === 'Profile' ? 'text-blue-500' : 'text-slate-400'}`}>PROFILE</Text>
           </TouchableOpacity>
         </View>
 
@@ -232,220 +240,3 @@ export default function JobSearchScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#f8faff',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
-  },
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-  },
-  logoText: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#4338ca', // Indigo / Purple
-    letterSpacing: -0.5,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  notificationBtn: {
-    marginRight: 16,
-  },
-  avatarContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  avatar: {
-    width: '100%',
-    height: '100%',
-  },
-  heroSection: {
-    paddingHorizontal: 20,
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  heroTitle: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#0f172a',
-    marginBottom: 8,
-    lineHeight: 40,
-    letterSpacing: -0.5,
-  },
-  heroTitleItalic: {
-    fontStyle: 'italic',
-    color: '#2563eb',
-  },
-  heroSubtitle: {
-    fontSize: 16,
-    color: '#475569',
-    lineHeight: 24,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f1f5f9',
-    marginHorizontal: 20,
-    borderRadius: 100,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginBottom: 20,
-  },
-  searchIcon: {
-    marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#334155',
-  },
-  filtersContainer: {
-    marginBottom: 24,
-  },
-  filtersContent: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  filterChip: {
-    backgroundColor: '#e2e8f0',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 100,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  filterChipActive: {
-    backgroundColor: '#1d4ed8', // Dark blue
-  },
-  filterChipText: {
-    fontWeight: '600',
-    color: '#334155',
-    fontSize: 14,
-  },
-  filterChipTextActive: {
-    color: '#ffffff',
-  },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100, // Space for bottom nav
-  },
-  cardContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 24,
-    padding: 24,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 3,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  companyLogo: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  jobTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#0f172a',
-    marginBottom: 6,
-  },
-  companyInfo: {
-    fontSize: 14,
-    color: '#475569',
-    marginBottom: 16,
-  },
-  tagsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 24,
-  },
-  tag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  tagText: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    paddingTop: 16,
-  },
-  salary: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#2563eb',
-  },
-  applyButton: {
-    backgroundColor: '#4f46e5', // Indigo
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 100,
-  },
-  applyButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 70,
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94a3b8',
-    marginTop: 4,
-    letterSpacing: 0.5,
-  },
-  navTextActive: {
-    color: '#3b82f6',
-  }
-});

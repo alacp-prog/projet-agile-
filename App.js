@@ -1,19 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
+import "./global.css";
 import JobSearchScreen from './src/screens/JobSearchScreen';
 
 export default function App() {
   return (
-    <View style={styles.container}>
+    <View className="flex-1 bg-white">
       <JobSearchScreen />
       <StatusBar style="auto" />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-});
