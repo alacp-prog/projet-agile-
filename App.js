@@ -1,12 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 import "./global.css";
-import JobSearchScreen from './src/screens/JobSearchScreen';
+import ConnectScreen from './src/screens/ConnectScreen';
 
 export default function App() {
   return (
     <View className="flex-1 bg-white">
-      <JobSearchScreen />
+      <ConnectScreen />
       <StatusBar style="auto" />
     </View>
   );
